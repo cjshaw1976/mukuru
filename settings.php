@@ -2,9 +2,9 @@
 
 // Enter your MySQL credentials
 $server = "localhost";
-$username = "cjs";
-$password = "cjs";
-$database = "mukuru";
+$username = "root";
+$password = "";
+$database = "";
 
 $apikey = 'cedba1f7e1e924185afb10443eb2b06b';
 
