@@ -55,7 +55,43 @@ if (isset($_POST['action']) && $_POST['action'] == "update") {
 
 // quote
 if (isset($_POST['action']) && $_POST['action'] == "quote") {
-  //get rate
+    //Get Rate
+    $stmt = $conn->prepare("SELECT `rate` = :rate FROM `trader_rates` WHERE `code` = :code;");
+    if($_POST['source'] == "USD"){
+        $stmt->bindParam(':rate', $_POST['target']);
+        $ref_currency = $_POST['target'];
+        $invert = false;
+    } else {
+        $stmt->bindParam(':rate', $_POST['source']);
+        $ref_currency = $_POST['source'];
+        $invert = true;
+    }
+    $stmt->execute();
+    $rate = $stmt->fetchColumn();
+
+    // Invert if converting to USD
+    if ($invert == true)
+        $rate = 1 / $rate;
+
+    // Get total
+    $total = $amout * $rate;
+
+    // Add Surcharge
+    switch ($ref_currency) {
+    case 'USD':
+        $surcharge = 7.5;
+        break;
+    case 'GBP':
+    case 'EUR':
+        $surcharge = 5;
+        break;
+    case 'KES':
+        $surcharge = 2.5;
+        break;
+    }
+
+    $total = $total + ($total * ($surcharge / 100));
+    return $total;
 }
 
 /* Surcharge
