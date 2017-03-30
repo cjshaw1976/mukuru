@@ -1,5 +1,3 @@
-# <font style='color:black; background-color:Lime;'><font style='color:black; background-color:Lime;'>mukuru</font></font>
-Benchmark test
 # Mukuru Benchmark test
 
 <h2>Overview</h2>
@@ -9,7 +7,7 @@ This benchmark skill set task to show the ability to write coherent software.
 <h2>Objective</h2>
 Build a site utilizing PHP, MySQL, AJAX to store, retrieve and display data in a workable interface.
 
-<h2>Tools Used<h2>
+<h2>Tools Used</h2>
 Framework: Bootstrap 3.3.7
 JQuery: 1.12
 MAMP PHP:
