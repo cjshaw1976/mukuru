@@ -25,3 +25,6 @@ To run, you will need either a local environment running PHP and MySQL, such as 
 3. You can use an existing database in your MySQL server, but it is recommended to create a new database using PHPMyAdmin or similar tool as any existing tables with the same name will be overwritten.
 4. In the file setting.php, enter you need to enter your server ip, username, password and an existing database you want to use.
 5. When you first open the website, it will automatically create the required tables in your database.
+
+<h2>Notes</h2>
+For demonstration purposes, the Ajax response and database records are displayed.
