@@ -17,6 +17,44 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `trader_orders`
+--
+
+CREATE TABLE `trader_orders` (
+  `id` int(11) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `currency` varchar(3) NOT NULL,
+  `exchange_rate` float NOT NULL,
+  `surcharge_percent` float NOT NULL,
+  `surcharge_amount` float NOT NULL,
+  `currency_amount` float NOT NULL,
+  `usd_amount` float NOT NULL,
+  `discount_amount` float NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `trader_orders`
+--
+ALTER TABLE `trader_orders`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `trader_orders`
+--
+ALTER TABLE `trader_orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `trader_rates`
 --
 

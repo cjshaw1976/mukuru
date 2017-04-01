@@ -40,6 +40,12 @@ if(!$result) {
   $conn->exec($sql);
 }
 
+// For demo purposes, get all purchases
+
+$stmt = $conn->prepare("SELECT `id`, `currency`, `exchange_rate`, `surcharge_percent`, `currency_amount`, `usd_amount`, `surcharge_amount`, `timestamp`, `discount_amount` FROM `trader_orders` ORDER BY `timestamp` DESC;");
+$stmt->execute();
+$purchases = $stmt->fetchall();
+
  ?>
  <!doctype html>
  <html class="no-js" lang="">
@@ -64,6 +70,17 @@ if(!$result) {
              <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
          <![endif]-->
          <div class="container">
+           <div class="row demo">
+             <h4>Instructions:</h4>
+             <ul>
+               <li>Select the currency you want to work in</li>
+               <li>Type an amount to change</li>
+               <li>Swop the source and target currencies by pressing the middle button</li>
+               <li>Change the source and target currencies and amount.</li>
+               <li>When you are happy, click purchase to complete a transaction</li>
+               <li>Perform another transaction</li>
+             </ul>
+           </div>
            <div class="row">
              <div  class="form-inline">
 
@@ -83,8 +100,10 @@ if(!$result) {
                    <input type="text" class="form-control" aria-label="..." placeholder="Amount" id="amount" name="amount">
                  </div><!-- /input-group -->
                </div>
-               <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-               <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+               <button type="button" class="btn btn-default" id="swop" name="swop">
+                 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+               </button>
                <div class="form-group">
                  <div class="input-group">
                    <div class="input-group-btn">
@@ -104,7 +123,45 @@ if(!$result) {
                <button type="submit" class="btn btn-primary" id="purchase" name="purchase">Purchase</button>
              </div>
            </div><!-- /.row -->
-           <div id="message"></div>
+           <div id="message">&nbsp</div>
+           <div class="row demo">
+             <h4>For demonstration purposes:</h4>
+             <h5>Last Ajax results:</h5>
+             <p id="ajax">&nbsp</p>
+             <h5>Purchases:</h5>
+             <table class="table table-striped">
+               <thead>
+                 <tr>
+                   <th>Reference</th>
+                   <th>Foreign currency purchased</th>
+                   <th>Exchange rate for foreign currency</th>
+                   <th>Surcharge percentage</th>
+                   <th>Amount of foreign currency purchased</th>
+                   <th>Amount to be paid in USD</th>
+                   <th>Amount of surcharge</th>
+                   <th>Date created</th>
+                   <th>Discount</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <? if ($purchases) {
+                   foreach ($purchases as $purchase){ ?>
+                 <tr>
+                   <td><? echo $purchase['id']; ?></td>
+                   <td><? echo $purchase['currency']; ?></td>
+                   <td><? echo $purchase['exchange_rate']; ?></td>
+                   <td><? echo $purchase['surcharge_percent']; ?></td>
+                   <td><? echo $purchase['currency_amount']; ?></td>
+                   <td><? echo $purchase['usd_amount']; ?></td>
+                   <td><? echo $purchase['surcharge_amount']; ?></td>
+                   <td><? echo $purchase['timestamp']; ?></td>
+                   <td><? echo $purchase['discount_amount']; ?></td>
+                 </tr>
+                 <? }} ?>
+               </tbody>
+             </table>
+           </div>
+
          </div><!-- /.container -->
 
          <!-- Jquery -->

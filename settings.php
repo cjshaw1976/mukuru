@@ -2,11 +2,11 @@
 
 // Enter your MySQL credentials
 $server = "localhost";
-$username = "root";
+$username = "";
 $password = "";
 $database = "";
 
-$apikey = 'cedba1f7e1e924185afb10443eb2b06b';
+$email_recipent = "ronny@mukuru.com";
 
 // If the server does not support the function hash_equals for passwords
 if(!function_exists('hash_equals')) {

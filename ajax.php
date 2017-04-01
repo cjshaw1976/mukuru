@@ -53,54 +53,95 @@ if (isset($_POST['action']) && $_POST['action'] == "update") {
   }
 }
 
-// quote
-if (isset($_POST['action']) && $_POST['action'] == "quote") {
+// quote or purchase
+if (isset($_POST['action']) && ($_POST['action'] == "quote" || $_POST['action'] == "purchase")) {
+    $result = array();
+
     //Get Rate
-    $stmt = $conn->prepare("SELECT `rate` = :rate FROM `trader_rates` WHERE `code` = :code;");
+    $stmt = $conn->prepare("SELECT `rate` FROM `trader_rates` WHERE `code` = :code;");
     if($_POST['source'] == "USD"){
-        $stmt->bindParam(':rate', $_POST['target']);
-        $ref_currency = $_POST['target'];
-        $invert = false;
+        $stmt->bindParam(':code', $_POST['target']);
+        $result['currency'] = $_POST['target'];
+        $result['usd'] = $_POST['amount'];
     } else {
-        $stmt->bindParam(':rate', $_POST['source']);
-        $ref_currency = $_POST['source'];
-        $invert = true;
+        $stmt->bindParam(':code', $_POST['source']);
+        $result['currency'] = $_POST['source'];
+        $result['foreign'] = $_POST['amount'];
     }
     $stmt->execute();
-    $rate = $stmt->fetchColumn();
+    $result['exchange_rate'] = $stmt->fetchColumn();
 
-    // Invert if converting to USD
-    if ($invert == true)
-        $rate = 1 / $rate;
-
-    // Get total
-    $total = $amout * $rate;
-
-    // Add Surcharge
-    switch ($ref_currency) {
-    case 'USD':
-        $surcharge = 7.5;
+    // Get Surcharge
+    switch ($result['currency']) {
+    case 'ZAR':
+        $result['surcharge_percentage'] = 7.5;
         break;
     case 'GBP':
     case 'EUR':
-        $surcharge = 5;
+        $result['surcharge_percentage'] = 5;
         break;
     case 'KES':
-        $surcharge = 2.5;
+        $result['surcharge_percentage'] = 2.5;
         break;
     }
 
-    $total = $total + ($total * ($surcharge / 100));
-    return $total;
+    if($_POST['source'] == "USD"){
+      // (amount / (1 + ( surcharge_percentage / 100 ))) * exchange_rate = total
+      $result['total'] = number_format((($_POST['amount'] / (1 + ($result['surcharge_percentage'] / 100))) * $result['exchange_rate']), 2, '.', '');
+      $result['surcharge_amount'] = number_format($_POST['amount'] - ($_POST['amount'] / (1 + ($result['surcharge_percentage'] / 100))), 2, '.', '');
+      $result['foreign'] = $result['total'];
+    } else {
+      // (amount / exchange_rate) * (1 + ( surcharge_percentage / 100 )) = total
+      $result['total'] = number_format(($_POST['amount']  / $result['exchange_rate']) * (1 + ($result['surcharge_percentage'] / 100)), 2, '.', '');
+      $result['surcharge_amount'] = number_format($result['total'] - ($_POST['amount']  / $result['exchange_rate']), 2, '.', '');
+      $result['usd'] = $result['total'];
+    }
+
+    if ($_POST['action'] == "purchase") {
+      $stmt = $conn->prepare("INSERT INTO `trader_orders` (`currency`, `exchange_rate`, `surcharge_percent`, `surcharge_amount`, `currency_amount`, `usd_amount`)
+        VALUES (:currency, :exchange_rate, :surcharge_percent, :surcharge_amount, :currency_amount, :usd_amount);");
+
+      $stmt->bindParam(':currency', $result['currency']);
+      $stmt->bindParam(':exchange_rate', $result['exchange_rate']);
+      $stmt->bindParam(':surcharge_percent', $result['surcharge_percentage']);
+      $stmt->bindParam(':surcharge_amount', $result['surcharge_amount']);
+      $stmt->bindParam(':currency_amount', $result['foreign']);
+      $stmt->bindParam(':usd_amount', $result['usd']);
+      $stmt->execute();
+
+      // Get id & timestamp
+      $result['purchace_id'] = $conn->lastInsertId();
+      $stmt = $conn->prepare("SELECT `timestamp` FROM `trader_orders` WHERE `id` = :id;");
+      $stmt->bindParam(':id', $result['purchace_id']);
+      $stmt->execute();
+      $result['timestamp'] = $stmt->fetchColumn();
+
+      // Extra Actions
+      if ($result['currency'] == 'GBP'){
+        $to      = $email_recipent;
+        $subject = 'GBP Currency purchace';
+        $message = 'Good day,' . "\r\n" .
+            'There has been '. $result['foreign'] .' GBP purchased, reference: '. $result['purchace_id'];
+        $headers = 'From: webmaster@example.com' . "\r\n" .
+            'Reply-To: webmaster@example.com' . "\r\n" .
+            'X-Mailer: PHP/' . phpversion();
+
+        mail($to, $subject, $message, $headers);
+      }
+
+      if ($result['currency'] == 'EUR'){
+        $result['discount_amount'] = number_format($result['usd'] * 0.02, 2, '.', '');
+        $stmt = $conn->prepare("UPDATE `trader_orders` SET discount_amount = :discount WHERE id = :id;");
+        $stmt->bindParam(':id', $result['purchace_id']);
+        $stmt->bindParam(':discount', $result['discount_amount']);
+        $stmt->execute();
+      } else{
+        $result['discount_amount'] = 0;
+      }
+    }
+
+    // Return result
+    echo json_encode($result);
 }
 
-/* Surcharge
-○ ZAR: 7.5%
-○ GBP: 5%
-○ EUR: 5%
-○ KES: 2.5%
-*/
-
-
-
- ?>
+?>
